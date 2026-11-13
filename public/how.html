@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Как работает CryptoPay</title>
+  <meta name="description" content="Из каких частей состоит CryptoPay и что делает каждая из них — на настоящем платеже, шаг за шагом.">
+  <meta name="theme-color" content="#dce3ea">
+  <link rel="icon" href="/assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/golos-text-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/landing.css">
+  <link rel="stylesheet" href="/assets/css/how.css">
+  <script type="module" src="/assets/js/how.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/assets/img/logo.svg" alt="">CryptoPay</a>
+    <nav aria-label="Основное меню">
+      <a href="/how" aria-current="page">Как это работает</a>
+      <a href="/docs">Документация API</a>
+      <a href="/wallet">Обозреватель сети</a>
+      <a class="btn btn--quiet btn--small" href="/dashboard">Кабинет</a>
+    </nav>
+  </header>
+
+  <main class="how">
+    <header class="how-head">
+      <h1 class="how-title">Как работает CryptoPay</h1>
+      <p class="how-lead">Система состоит из семи частей. Нажмите на любую, чтобы узнать, что она делает и где лежит её код. Или проведите настоящий платёж: на каждом шаге схема подсветит части, которые сейчас работают, а справа появятся настоящие запросы и ответы сервера.</p>
+    </header>
+
+    <div class="how-stage">
+      <div class="how-left">
+        <figure class="scheme paper" aria-labelledby="scheme-caption">
+          <figcaption id="scheme-caption" class="visually-hidden">Схема частей CryptoPay и связей между ними</figcaption>
+          <svg id="scheme" viewBox="0 0 760 484" role="group" aria-label="Схема системы">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" class="arrow-head"></path>
+              </marker>
+              <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0 0 L10 5 L0 10 z" class="arrow-head arrow-head--active"></path>
+              </marker>
+            </defs>
+
+            <!-- граница «внутри CryptoPay»: API, фоновые задачи и база — одно приложение -->
+            <rect class="boundary" x="8" y="186" width="490" height="290" rx="10"></rect>
+            <text class="boundary-label" x="20" y="472">одно приложение CryptoPay на Render</text>
+
+            <g class="edges">
+              <path class="edge" data-edge="shop-api" d="M200 230 L276 230"></path>
+              <path class="edge" data-edge="page-api" d="M380 86 L380 196"></path>
+              <path class="edge" data-edge="page-wallet" d="M482 46 C 530 46, 530 120, 556 120"></path>
+              <path class="edge" data-edge="api-wallet" d="M482 222 C 530 222, 528 156, 556 156"></path>
+              <path class="edge" data-edge="wallet-chain" d="M650 176 L650 286"></path>
+              <path class="edge" data-edge="api-db" d="M380 266 L380 376"></path>
+              <path class="edge" data-edge="jobs-api" d="M150 376 C 150 320, 300 320, 318 268"></path>
+              <path class="edge" data-edge="jobs-db" d="M202 410 L276 410"></path>
+              <path class="edge" data-edge="jobs-shop" d="M60 376 L60 266"></path>
+            </g>
+
+            <g class="edge-labels" aria-hidden="true">
+              <text x="238" y="220" text-anchor="middle" data-edge-label="shop-api">ключ API</text>
+              <text x="388" y="146" data-edge-label="page-api">/api/checkout</text>
+              <text x="540" y="40" data-edge-label="page-wallet">окно кошелька</text>
+              <text x="488" y="250" data-edge-label="api-wallet">порт CryptoWallet</text>
+              <text x="658" y="236" data-edge-label="wallet-chain">транзакция</text>
+              <text x="388" y="326" data-edge-label="api-db">UnitOfWork</text>
+              <text x="196" y="314" data-edge-label="jobs-api">сверка раз в 3 с</text>
+              <text x="239" y="400" text-anchor="middle" data-edge-label="jobs-db">outbox</text>
+              <text x="68" y="326" data-edge-label="jobs-shop">вебхук</text>
+            </g>
+
+            <g class="part" data-part="page" tabindex="0" role="button" aria-label="Страница оплаты">
+              <rect x="280" y="22" width="200" height="62" rx="6"></rect>
+              <text class="part-name" x="380" y="49" text-anchor="middle">Страница оплаты</text>
+              <text class="part-sub" x="380" y="69" text-anchor="middle">браузер покупателя</text>
+            </g>
+            <g class="part" data-part="shop" tabindex="0" role="button" aria-label="Сервер магазина">
+              <rect x="20" y="200" width="180" height="62" rx="6"></rect>
+              <text class="part-name" x="110" y="227" text-anchor="middle">Сервер магазина</text>
+              <text class="part-sub" x="110" y="247" text-anchor="middle">клиент API</text>
+            </g>
+            <g class="part part--core" data-part="api" tabindex="0" role="button" aria-label="CryptoPay API">
+              <rect x="280" y="200" width="200" height="62" rx="6"></rect>
+              <text class="part-name" x="380" y="227" text-anchor="middle">CryptoPay API</text>
+              <text class="part-sub" x="380" y="247" text-anchor="middle">FastAPI и сервисы</text>
+            </g>
+            <g class="part part--external" data-part="wallet" tabindex="0" role="button" aria-label="Кошелёк MockWallet">
+              <rect x="560" y="112" width="180" height="62" rx="6"></rect>
+              <text class="part-name" x="650" y="139" text-anchor="middle">Кошелёк</text>
+              <text class="part-sub" x="650" y="159" text-anchor="middle">MockWallet</text>
+            </g>
+            <g class="part part--external" data-part="chain" tabindex="0" role="button" aria-label="Сеть MockChain">
+              <rect x="560" y="290" width="180" height="62" rx="6"></rect>
+              <text class="part-name" x="650" y="317" text-anchor="middle">Сеть</text>
+              <text class="part-sub" id="chain-sub" x="650" y="337" text-anchor="middle">MockChain</text>
+            </g>
+            <g class="part" data-part="jobs" tabindex="0" role="button" aria-label="Фоновые задачи">
+              <rect x="20" y="380" width="180" height="62" rx="6"></rect>
+              <text class="part-name" x="110" y="407" text-anchor="middle">Фоновые задачи</text>
+              <text class="part-sub" x="110" y="427" text-anchor="middle">сверка и вебхуки</text>
+            </g>
+            <g class="part" data-part="db" tabindex="0" role="button" aria-label="База данных PostgreSQL">
+              <rect x="280" y="380" width="200" height="62" rx="6"></rect>
+              <text class="part-name" x="380" y="407" text-anchor="middle">База данных</text>
+              <text class="part-sub" x="380" y="427" text-anchor="middle">PostgreSQL</text>
+            </g>
+          </svg>
+          <p class="scheme-key small muted"><span class="key-item"><span class="key key--core"></span>ядро CryptoPay</span><span class="key-item"><span class="key key--external"></span>внешняя система за адаптером</span><span class="key-item"><span class="key"></span>остальные части</span></p>
+        </figure>
+
+        <article id="part-card" class="part-card paper" aria-live="polite">
+          <h2 class="part-card-title">Выберите часть на схеме</h2>
+          <p class="muted">Здесь появится её описание: что она делает, как работает и где лежит её код.</p>
+        </article>
+      </div>
+
+      <section class="walk" aria-labelledby="walk-title">
+        <div class="walk-head">
+          <h2 id="walk-title" class="section-heading">Настоящий платёж по шагам</h2>
+          <p class="muted small">25 USDT от демо-магазина, платит тестовый кошелёк Алисы. Каждый шаг — настоящий запрос к этому серверу.</p>
+          <div class="walk-controls">
+            <button id="walk-next" type="button" class="btn btn--brand">Начать платёж</button>
+            <button id="walk-reset" type="button" class="btn btn--quiet" hidden>Сначала</button>
+          </div>
+          <p id="walk-error" class="form-error" role="alert" hidden></p>
+        </div>
+        <ol id="walk-steps" class="walk-steps"></ol>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

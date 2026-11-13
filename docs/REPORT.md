@@ -387,7 +387,7 @@ async with self._uow.transaction() as repos:        # 2. одна транзак
 | База данных | Neon PostgreSQL 16, Франкфурт | Free |
 | CI | GitHub Actions | Free |
 
-**Адрес развёрнутой системы:** `https://[ваш-сервис].onrender.com` — вписать после деплоя.
+**Адрес развёрнутой системы:** https://cryptopay-u2rc.onrender.com (проверка состояния — https://cryptopay-u2rc.onrender.com/healthz, ответ `"storage": "postgres", "database": "ok"`).
 
 Альтернатива для любого VPS — `deploy/docker-compose.prod.yml`: приложение, PostgreSQL и Caddy с автоматическим сертификатом Let's Encrypt. Пошаговая инструкция — [deployment.md](deployment.md).
 

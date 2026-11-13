@@ -173,6 +173,10 @@ def create_app(container: Container | None = None, *, config: AppConfig | None =
     async def index() -> FileResponse:
         return page("index.html")
 
+    @app.get("/how", include_in_schema=False)
+    async def how_it_works() -> FileResponse:
+        return page("how.html")
+
     @app.get("/dashboard", include_in_schema=False)
     async def dashboard() -> FileResponse:
         return page("dashboard.html")

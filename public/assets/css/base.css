@@ -148,20 +148,6 @@ a:hover {
   display: none !important;
 }
 
-/* ───────────── Полоса «тестовый режим» (как у Stripe) ───────────── */
-
-.test-band {
-  padding: 0.35rem 1rem;
-  background: var(--amber-band);
-  color: #4a3000;
-  font-size: var(--t-small);
-  text-align: center;
-}
-.test-band strong {
-  margin-right: 0.35rem;
-  font-weight: 650;
-}
-
 /* ───────────── Логотип ───────────── */
 
 .brand {

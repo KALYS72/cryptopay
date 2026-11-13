@@ -34,6 +34,7 @@ git branch -M main
 $name = (gh api user --jq .login)
 if (-not (git config user.name)) { git config user.name $name }
 if (-not (git config user.email)) { git config user.email "$name@users.noreply.github.com" }
+git rm -r -q --cached --ignore-unmatch cryptopay-stripe | Out-Null
 git add -A
 git diff --cached --quiet
 if ($LASTEXITCODE -ne 0) {

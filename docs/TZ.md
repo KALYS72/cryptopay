@@ -216,7 +216,7 @@
 
 **Программное.** Python 3.13, FastAPI, Pydantic, psycopg 3, PyJWT, httpx, uvicorn. Интерфейс — HTML, CSS и JavaScript (ES-модули) без сборщика. Тесты — pytest, Playwright.
 
-**Техническое.** Облачный хостинг с поддержкой Docker (Render, план Free) и управляемая база PostgreSQL (Neon, план Free). Альтернатива — любой VPS с Docker.
+**Техническое.** Облачный хостинг с поддержкой Docker (Render, план Free) и управляемая база PostgreSQL (Neon, план Free). Альтернатива — любой VPS с Docker. Развёрнутая версия: https://cryptopay-u2rc.onrender.com.
 
 ## 5. Состав и содержание работ
 

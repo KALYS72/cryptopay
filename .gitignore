@@ -17,3 +17,6 @@ test-results/
 
 # служебное
 commit-message.txt
+
+# случайная вложенная копия
+/cryptopay-stripe/

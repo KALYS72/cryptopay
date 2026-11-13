@@ -13,11 +13,10 @@
   <script type="module" src="/assets/js/landing.js"></script>
 </head>
 <body>
-  <div class="test-band"><strong>Тестовый режим.</strong> Кошелёк и сеть — имитация, настоящие деньги не используются.</div>
-
   <header class="topbar">
     <a class="brand" href="/"><img src="/assets/img/logo.svg" alt="">CryptoPay</a>
     <nav aria-label="Основное меню">
+      <a href="/how">Как это работает</a>
       <a href="/docs">Документация API</a>
       <a href="/wallet">Обозреватель сети</a>
       <a class="btn btn--quiet btn--small" href="/dashboard">Кабинет</a>
@@ -66,6 +65,7 @@
         <li><strong>Подтверждает в кошельке</strong><span>Кошелёк списывает деньги и отправляет транзакцию в сеть. Платёж переходит в processing.</span></li>
         <li><strong>Сеть подтверждает перевод</strong><span>После трёх блоков платёж succeeded, на баланс зачисляется сумма минус 1 %, магазину уходит вебхук.</span></li>
       </ol>
+      <p class="flow-more"><a href="/how">Посмотреть, как работает каждая часть системы, на живом платеже</a></p>
     </section>
 
     <section class="testing" aria-labelledby="wallets-title">
@@ -86,8 +86,5 @@
     </section>
   </main>
 
-  <footer class="site-foot muted small">
-    <p>CryptoPay — учебный проект по дисциплине Advanced Software Engineering. Работает в тестовом режиме: кошелёк MockWallet и сеть MockChain имитируются сервером.</p>
-  </footer>
 </body>
 </html>

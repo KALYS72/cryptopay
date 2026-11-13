@@ -1,7 +1,0 @@
-# Для разработки и тестов: pip install -r requirements-dev.txt && pip install -e . --no-deps
--r requirements.txt
-pytest==9.2.0
-pytest-asyncio==1.4.1.post1
-playwright==1.63.0
-mypy==2.4.1
-ruff==0.17.4

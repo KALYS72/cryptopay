@@ -6,6 +6,8 @@
 
 > Учебный проект по дисциплине «Advanced Software» (мидтерм + файнал).
 
+**Работающая версия:** https://cryptopay-u2rc.onrender.com · [проверка состояния](https://cryptopay-u2rc.onrender.com/healthz) · [Swagger UI](https://cryptopay-u2rc.onrender.com/docs) · [обозреватель MockChain](https://cryptopay-u2rc.onrender.com/wallet)
+
 ![Страница оплаты после успешной оплаты](docs/screenshots/05-checkout-paid.png)
 
 ## Что где — по пунктам задания
@@ -14,7 +16,7 @@
 |---|---|
 | 1. ТЗ | [docs/TZ.md](docs/TZ.md) |
 | 2. Диаграммы — всё, что прошли | [docs/diagrams.md](docs/diagrams.md) — 24 UML-диаграммы, исходники в `docs/diagrams/*.puml` |
-| 3. Проект запущен на облачном сервере | [docs/deployment.md](docs/deployment.md) — Render + Neon, `render.yaml`, `Dockerfile` |
+| 3. Проект запущен на облачном сервере | **https://cryptopay-u2rc.onrender.com** · [docs/deployment.md](docs/deployment.md) — Render + Neon, `render.yaml`, `Dockerfile` |
 | 4. Интеграция с криптокошельком | [docs/mock-wallet.md](docs/mock-wallet.md) — порт, адаптер, имитация кошелька и сети |
 | 5. Где элементы SOLID | [docs/solid.md](docs/solid.md) |
 | Отчёт | [docs/REPORT.md](docs/REPORT.md) |

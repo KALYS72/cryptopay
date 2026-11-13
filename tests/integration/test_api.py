@@ -332,6 +332,14 @@ async def test_health_and_openapi(h: Harness) -> None:
     assert docs.status_code == 200 and "swagger-ui" in docs.text
 
 
+async def test_pages_have_no_test_mode_banner_and_how_page_works(h: Harness) -> None:
+    for path in ("/", "/dashboard", "/how"):
+        page = await h.client.get(path)
+        assert page.status_code == 200 and "test-band" not in page.text
+    how = await h.client.get("/how")
+    assert "Как работает CryptoPay" in how.text and "/assets/js/how.js" in how.text
+
+
 async def test_security_headers(h: Harness) -> None:
     response = await h.client.get("/")
     assert "script-src 'self'" in response.headers["content-security-policy"]

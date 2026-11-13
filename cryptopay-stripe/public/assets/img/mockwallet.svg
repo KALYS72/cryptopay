@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <title>MockWallet</title>
-  <rect x="3.5" y="7" width="25" height="19" rx="4" fill="#262c36" stroke="#d6a64f" stroke-width="2"/>
-  <path d="M3.5 12h25" stroke="#d6a64f" stroke-width="2"/>
-  <circle cx="22.5" cy="19" r="2.4" fill="#d6a64f"/>
-  <path d="M8 7l11-3.5 2 3.5" stroke="#d6a64f" stroke-width="2" stroke-linejoin="round"/>
-</svg>
