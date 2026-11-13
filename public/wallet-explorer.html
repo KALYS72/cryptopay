@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Обозреватель MockChain — MockWallet</title>
+  <meta name="theme-color" content="#262c36">
+  <link rel="icon" href="/assets/img/mockwallet.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/golos-text-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/wallet.css">
+  <script type="module" src="/assets/js/wallet-explorer.js"></script>
+</head>
+<body class="wallet-page explorer-page">
+  <p class="wallet-disclaimer">Имитация блокчейна для тестового режима CryptoPay: блоки появляются по таймеру, балансы — тестовые.</p>
+
+  <main class="explorer">
+    <header class="explorer-head">
+      <div>
+        <span class="device-brand"><img src="/assets/img/mockwallet.svg" alt="" width="22" height="22">MockWallet</span>
+        <h1 class="explorer-title">Обозреватель сети MockChain</h1>
+        <p class="dim small" id="chain-info"></p>
+      </div>
+      <div class="explorer-actions">
+        <a class="hw-button hw-button--ghost" href="/">CryptoPay</a>
+        <button type="button" class="hw-button hw-button--ghost" id="reset">Сбросить тестовые балансы</button>
+      </div>
+    </header>
+
+    <section aria-labelledby="blocks-title">
+      <h2 class="section-title" id="blocks-title">Последние блоки</h2>
+      <ol class="blocks" id="blocks" aria-live="off"></ol>
+    </section>
+
+    <section aria-labelledby="accounts-title">
+      <h2 class="section-title" id="accounts-title">Тестовые кошельки</h2>
+      <div class="table-wrap">
+        <table class="chain-table">
+          <thead><tr><th>Кошелёк</th><th>Адрес</th><th>Что произойдёт при оплате</th><th class="amount">USDT</th><th class="amount">USDC</th><th class="amount">BTC</th><th class="amount">ETH</th></tr></thead>
+          <tbody id="accounts"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="tx-title">
+      <h2 class="section-title" id="tx-title">Транзакции</h2>
+      <div class="table-wrap">
+        <table class="chain-table">
+          <thead><tr><th>Хэш</th><th>Тип</th><th>Откуда</th><th>Куда</th><th class="amount">Сумма</th><th>Блок</th><th>Статус</th></tr></thead>
+          <tbody id="transactions"></tbody>
+        </table>
+      </div>
+      <p class="dim small" id="tx-empty" hidden>Транзакций пока нет. Оплатите что-нибудь на странице оплаты CryptoPay — перевод появится здесь.</p>
+    </section>
+  </main>
+</body>
+</html>

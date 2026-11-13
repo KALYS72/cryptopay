@@ -1,0 +1,52 @@
+@startuml activity-sync
+!include _style.iuml
+title Деятельность — алгоритм сверки платежа с кошельком (PaymentService.sync)
+
+start
+:Прочитать PaymentIntent;
+if (Статус requires_action или processing?) then (нет)
+  :Нечего сверять;
+  stop
+endif
+:Спросить кошелёк ВНЕ транзакции БД:\nзапрос на оплату и транзакцию;
+:Открыть транзакцию БД,\nперечитать платёж;
+if (Версия изменилась, пока ждали кошелёк?) then (да)
+  :Кто-то уже обработал —\nрезультат отбрасываем;
+  stop
+endif
+if (Статус requires_action?) then (да)
+  if (Запрос найден?) then (нет)
+    #FBEBEB:fail_payment(wallet_request_not_found);
+    stop
+  endif
+  if (Статус запроса) then (pending)
+    :Покупатель ещё думает;
+    stop
+  elseif () then (rejected / failed /\nexpired / canceled)
+    #FBEBEB:fail_payment(код от кошелька:\npayment_rejected, insufficient_funds,\nwallet_declined…);
+    stop
+  else (approved)
+    :mark_processing(tx_id, payer);
+  endif
+endif
+if (Транзакция найдена?) then (нет)
+  #FBEBEB:fail_payment(transaction_not_found);
+  stop
+endif
+if (Транзакция провалилась в сети?) then (да)
+  #FBEBEB:fail_payment(transaction_failed);
+  stop
+endif
+if (Сумма и валюта совпадают с платежом?) then (нет)
+  #FBEBEB:fail_payment(amount_mismatch);
+  stop
+endif
+:update_confirmations(n);
+if (Подтверждений ≥ required?) then (да)
+  #EEEAFB:mark_succeeded()\nпроводка «оплата» с комиссией\nCheckoutSession → complete;
+else (нет)
+  :ждём следующего блока;
+endif
+:Сохранить платёж (UPDATE … WHERE version)\nи опубликовать события → outbox;
+stop
+@enduml

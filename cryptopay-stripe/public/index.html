@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CryptoPay — криптоплатежи с API в стиле Stripe</title>
+  <meta name="description" content="Платёжная система для криптокошелька: Checkout Sessions, PaymentIntents, возвраты и подписанные вебхуки. Тестовый режим с имитацией кошелька.">
+  <meta name="theme-color" content="#dce3ea">
+  <link rel="icon" href="/assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/golos-text-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/landing.css">
+  <script type="module" src="/assets/js/landing.js"></script>
+</head>
+<body>
+  <div class="test-band"><strong>Тестовый режим.</strong> Кошелёк и сеть — имитация, настоящие деньги не используются.</div>
+
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/assets/img/logo.svg" alt="">CryptoPay</a>
+    <nav aria-label="Основное меню">
+      <a href="/docs">Документация API</a>
+      <a href="/wallet">Обозреватель сети</a>
+      <a class="btn btn--quiet btn--small" href="/dashboard">Кабинет</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <h1 class="hero-title">Криптоплатежи с API, устроенным как у Stripe</h1>
+        <p class="hero-lead">Магазин создаёт страницу оплаты одним запросом. Покупатель подтверждает перевод в криптокошельке. Когда сеть подтвердит транзакцию, магазин получит подписанный вебхук, а деньги — на баланс.</p>
+        <div class="hero-actions">
+          <button id="try-demo" type="button" class="btn btn--brand">Попробовать оплату</button>
+          <a class="btn btn--quiet" href="/dashboard">Открыть кабинет</a>
+        </div>
+        <p id="demo-error" class="form-error" role="alert" hidden></p>
+        <p class="muted small hero-note">Кнопка создаст настоящую страницу оплаты демо-магазина на 25 USDT. Платите тестовым кошельком Алисы.</p>
+      </div>
+
+      <figure class="exchange paper">
+        <figcaption class="exchange-caption">Сервер магазина</figcaption>
+        <pre class="code"><code>curl /v1/checkout/sessions \
+  -u sk_test_ваш_секретный_ключ: \
+  -H "Idempotency-Key: order-1042" \
+  -d '{"amount": "25000000",
+       "currency": "usdt",
+       "success_url": "https://shop.example/thanks"}'</code></pre>
+        <figcaption class="exchange-caption">Ответ CryptoPay</figcaption>
+        <pre class="code"><code>{
+  "id": "cs_9aB3dE5fG7hJ1kL2mN4pQ6rS",
+  "object": "checkout.session",
+  "url": "/checkout/cs_9aB3dE5fG7hJ1kL2mN4pQ6rS",
+  "status": "open",
+  "payment_intent": "pi_4Fz9Qk2LmP8xR1tB7cVwQa3e",
+  "amount_total": "25000000",
+  "currency": "usdt"
+}</code></pre>
+      </figure>
+    </section>
+
+    <section class="flow" aria-labelledby="flow-title">
+      <h2 id="flow-title" class="section-heading">Как проходит платёж</h2>
+      <ol class="flow-steps">
+        <li><strong>Магазин создаёт сессию оплаты</strong><span>POST /v1/checkout/sessions с секретным ключом. В ответ — ссылка на страницу оплаты.</span></li>
+        <li><strong>Покупатель открывает страницу</strong><span>Видит сумму и магазин, нажимает «Оплатить» — CryptoPay отправляет запрос в его кошелёк.</span></li>
+        <li><strong>Подтверждает в кошельке</strong><span>Кошелёк списывает деньги и отправляет транзакцию в сеть. Платёж переходит в processing.</span></li>
+        <li><strong>Сеть подтверждает перевод</strong><span>После трёх блоков платёж succeeded, на баланс зачисляется сумма минус 1 %, магазину уходит вебхук.</span></li>
+      </ol>
+    </section>
+
+    <section class="testing" aria-labelledby="wallets-title">
+      <div>
+        <h2 id="wallets-title" class="section-heading">Тестовые кошельки</h2>
+        <p class="muted">Как тестовые карты Stripe: каждый кошелёк заранее даёт известный исход. Так можно показать любой сценарий, не дожидаясь настоящей ошибки.</p>
+      </div>
+      <table class="ledger paper wallet-table">
+        <thead><tr><th>Кошелёк</th><th>Что произойдёт</th><th>Статус платежа</th></tr></thead>
+        <tbody>
+          <tr><td>Алиса</td><td>Оплата проходит</td><td class="mono">succeeded</td></tr>
+          <tr><td>Боб</td><td>Недостаточно средств</td><td class="mono">insufficient_funds</td></tr>
+          <tr><td>Кэрол</td><td>Кошелёк отклоняет платёж</td><td class="mono">wallet_declined</td></tr>
+          <tr><td>Дэйв</td><td>Медленная сеть, подтверждения идут дольше</td><td class="mono">succeeded</td></tr>
+          <tr><td>Ева</td><td>Транзакция отправлена, но проваливается в сети</td><td class="mono">transaction_failed</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="site-foot muted small">
+    <p>CryptoPay — учебный проект по дисциплине Advanced Software Engineering. Работает в тестовом режиме: кошелёк MockWallet и сеть MockChain имитируются сервером.</p>
+  </footer>
+</body>
+</html>

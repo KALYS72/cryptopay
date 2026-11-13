@@ -1,0 +1,86 @@
+@startuml class-wallet-integration
+!include _style.iuml
+title Диаграмма классов — интеграция с криптокошельком (Adapter, DIP)
+hide empty members
+
+package "cryptopay.application" {
+  abstract class CryptoWallet <<port, ABC>> {
+    + {abstract} create_payment_request(r): WalletPaymentRequest
+    + {abstract} get_payment_request(id): WalletPaymentRequest | None
+    + {abstract} cancel_payment_request(id)
+    + {abstract} get_transaction(tx_id): WalletTransaction | None
+    + {abstract} send_refund(...): WalletTransaction
+  }
+  class WalletPaymentRequest <<DTO>> {
+    + id, status, approve_url
+    + tx_id, payer_address
+    + failure_code, failure_message
+  }
+  class WalletTransaction <<DTO>> {
+    + id, status, confirmations
+    + amount, currency, from, to
+  }
+  class PaymentService
+  class CheckoutService
+  class RefundService
+}
+
+package "cryptopay.infrastructure.wallet" {
+  class MockWalletAdapter <<Adapter>> {
+    - _wallet: MockWallet
+    + create_payment_request(r)
+    + ...
+    - _request(model): WalletPaymentRequest
+  }
+  class "MetaMaskAdapter\n(можно добавить)" as MetaMask <<Adapter>> #F5F7FA
+}
+
+package "cryptopay.mockwallet — внешняя система" #F5F7FA {
+  class MockWallet {
+    + accounts()
+    + create_payment_request(...)
+    + approve(request_id, account_id)
+    + reject(request_id)
+    + get_transaction(tx_id)
+    + send_from_treasury(..., reference)
+    - _settle()
+  }
+  class MockChain <<Value Object>> {
+    + genesis, block_time_seconds
+    + height(now): int
+    + confirmations(included_height, now): int
+  }
+  class WalletAccount {
+    + id, name, address
+    + profile: normal | insufficient_funds |\n declines | slow | fails_onchain | treasury
+    + balances: dict[str, int]
+  }
+  class PaymentRequest
+  class Transaction {
+    + included_height
+    + will_fail: bool
+  }
+}
+
+PaymentService --> CryptoWallet
+CheckoutService --> CryptoWallet
+RefundService --> CryptoWallet
+CryptoWallet ..> WalletPaymentRequest
+CryptoWallet ..> WalletTransaction
+MockWalletAdapter -up-|> CryptoWallet
+MetaMask .up.|> CryptoWallet
+MockWalletAdapter --> MockWallet
+MockWallet *-- MockChain
+MockWallet *-- "6" WalletAccount
+MockWallet *-- "*" PaymentRequest
+MockWallet *-- "*" Transaction
+
+note bottom of MetaMask
+  SOLID (O, D): настоящий кошелёк — новый адаптер того же порта
+  и одна строка в container.py. Сервисы не меняются.
+end note
+note bottom of MockWallet
+  Пакет mockwallet не импортирует ничего из CryptoPay —
+  это проверяет tests/test_architecture.py.
+end note
+@enduml

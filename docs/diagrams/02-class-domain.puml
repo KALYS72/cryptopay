@@ -1,0 +1,109 @@
+@startuml class-domain
+!include _style.iuml
+title Диаграмма классов — доменная модель (как объекты Stripe)
+hide empty members
+
+class Merchant <<Entity>> {
+  - id: str  «acct_…»
+  - email: str
+  - business_name: str
+  - password_hash: str
+  - api_key_hash: str | None
+  + register(...): Merchant
+  + rename(name)
+  + set_api_key(key_hash, last4, now)
+}
+
+class CheckoutSession <<Aggregate root>> {
+  - id: str  «cs_…»
+  - status: open | complete | expired
+  - payment_status: unpaid | paid
+  - success_url, cancel_url
+  - expires_at: datetime
+  + is_open(now): bool
+  + success_redirect_url(): str
+  + complete(now)
+  + expire(now)
+}
+
+class PaymentIntent <<Aggregate root>> {
+  - id: str  «pi_…»
+  - amount: int
+  - currency: str
+  - status: PaymentIntentStatus
+  - metadata: dict[str, str]
+  - wallet_request_id, wallet_tx_id
+  - confirmations / required_confirmations
+  - amount_received, amount_refunded
+  - version: int
+  + start_wallet_payment(request_id, email, now)
+  + mark_processing(tx_id, payer, now)
+  + update_confirmations(n)
+  + mark_succeeded(now)
+  + fail_payment(code, message, now)
+  + cancel(reason, now)
+  + reserve_refund(amount) / release_refund(amount)
+  - _transition(to)
+}
+
+class PaymentError <<Value Object>> {
+  + code: str
+  + message: str
+}
+
+class Refund <<Entity>> {
+  - id: str  «re_…»
+  - amount: int
+  - status: pending | succeeded | failed
+  - destination_address: str
+  - wallet_tx_id: str | None
+  + attach_transaction(tx_id)
+  + mark_succeeded(now)
+  + mark_failed(reason, now)
+}
+
+class BalanceTransaction <<Value Object>> {
+  + id: str  «txn_…»
+  + type: payment | refund | refund_failure
+  + amount, fee, net: int
+  + for_payment(...) / for_refund(...)
+}
+
+class WebhookEndpoint <<Entity>> {
+  + id: str  «we_…»
+  + url: str
+  + secret: str  «whsec_…»
+  + enabled_events: tuple[str]
+  + accepts(event_type): bool
+}
+
+class Currency <<Value Object>> {
+  + code: usdt | usdc | btc | eth
+  + decimals: int
+  + min_amount: int
+}
+
+class DomainEvent <<Value Object>> {
+  + type: EventType
+  + subject_id: str
+  + occurred_at: datetime
+  + subject: снимок свойств объекта
+}
+
+Merchant "1" -- "0..*" CheckoutSession
+Merchant "1" -- "0..*" WebhookEndpoint
+Merchant "1" -- "0..*" BalanceTransaction : баланс = Σ net
+CheckoutSession "1" -- "1" PaymentIntent : оборачивает >
+PaymentIntent "1" *-- "0..1" PaymentError : last_payment_error
+PaymentIntent "1" -- "0..*" Refund
+PaymentIntent ..> Currency : проверяет\nmin_amount
+PaymentIntent ..> DomainEvent : записывает
+CheckoutSession ..> DomainEvent : записывает
+Refund ..> DomainEvent : записывает
+
+note right of PaymentIntent
+  Неудачная попытка не «ломает» платёж:
+  он возвращается в requires_payment_method,
+  и покупатель может попробовать снова.
+end note
+@enduml

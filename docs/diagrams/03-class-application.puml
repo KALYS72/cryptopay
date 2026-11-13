@@ -1,0 +1,87 @@
+@startuml class-application
+!include _style.iuml
+title Диаграмма классов — сервисы и порты прикладного слоя (SOLID)
+hide empty members
+left to right direction
+
+package "Сервисы (SOLID S: одна ответственность у каждого)" {
+  class CheckoutService {
+    + create(merchant, data): CheckoutSession
+    + public_view(session_id): PublicCheckout
+    + start_payment(session_id, email): approve_url
+    + expire(merchant, session_id)
+  }
+  class PaymentService {
+    + retrieve / list / cancel
+    + sync(intent_id): PaymentIntent
+    - _observe(intent): WalletObservation
+    - _apply(intent, observation): bool
+  }
+  class RefundService {
+    + create(merchant, pi, amount, reason)
+    + dispatch(refund_id)
+  }
+  class AccountService
+  class BalanceService
+  class WebhookService
+  class IdempotencyService {
+    + execute(merchant, key, hash, operation)
+  }
+}
+
+package "Порты (SOLID I, D: абстракции, которые нужны сервисам)" {
+  abstract class CryptoWallet <<port, ABC>> {
+    + create_payment_request(r)
+    + get_payment_request(id)
+    + cancel_payment_request(id)
+    + get_transaction(tx_id)
+    + send_refund(reference, to, amount, currency)
+  }
+  abstract class UnitOfWork <<port, ABC>> {
+    + repos: Repositories
+    + transaction(): async context
+  }
+  abstract class EventPublisher <<port, ABC>> {
+    + publish(events, repos)
+  }
+  abstract class Clock <<port>> {
+    + now()
+  }
+  abstract class IdGenerator <<port>> {
+    + generate(prefix)
+  }
+  abstract class TokenService <<port>>
+  abstract class PasswordHasher <<port>>
+  abstract class WebhookUrlPolicy <<port>>
+}
+
+package "Наблюдатель (SOLID O)" {
+  class EventDispatcher {
+    + publish(events, repos)
+  }
+  abstract class EventSubscriber {
+    + on_event(event, repos)
+  }
+  class WebhookFanout <<Outbox>>
+}
+
+CheckoutService --> PaymentService
+CheckoutService --> CryptoWallet
+CheckoutService --> UnitOfWork
+CheckoutService --> EventPublisher
+PaymentService --> CryptoWallet
+PaymentService --> UnitOfWork
+PaymentService --> EventPublisher
+PaymentService --> Clock
+RefundService --> CryptoWallet
+RefundService --> UnitOfWork
+AccountService --> TokenService
+AccountService --> PasswordHasher
+WebhookService --> WebhookUrlPolicy
+IdempotencyService --> UnitOfWork
+CheckoutService --> IdGenerator
+
+EventDispatcher -up-|> EventPublisher
+EventDispatcher o--> "*" EventSubscriber
+WebhookFanout -up-|> EventSubscriber
+@enduml

@@ -1,0 +1,29 @@
+# Render Blueprint: Dashboard → New → Blueprint → выберите этот репозиторий.
+# Render сам соберёт Docker-образ, выдаст HTTPS-адрес вида https://cryptopay-xxxx.onrender.com
+# и передаст его приложению в переменной RENDER_EXTERNAL_URL.
+services:
+  - type: web
+    name: cryptopay
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      # Строка подключения к PostgreSQL (например, из Neon: postgresql://…neon.tech/neondb?sslmode=require).
+      # Если оставить пустой — приложение запустится в демо-режиме с хранением в памяти.
+      - key: DATABASE_URL
+        sync: false
+      # Демо-аккаунт для проверки (данные входа видны на странице входа в кабинет).
+      - key: DEMO_ACCOUNT
+        value: 'true'
+      - key: REQUIRED_CONFIRMATIONS
+        value: '3'
+      - key: MOCK_BLOCK_TIME_SECONDS
+        value: '3'
+      - key: PLATFORM_FEE_BPS
+        value: '100'

@@ -1,0 +1,38 @@
+@startuml sequence-refund
+!include _style.iuml
+title Последовательность 4 — возврат денег покупателю
+autonumber
+
+actor "Продавец\n(кабинет или API)" as M
+participant "RefundService" as RS
+database "PostgreSQL" as DB
+participant "MockWalletAdapter" as A
+participant "MockWallet" as W
+participant "RefundSyncJob" as Job
+
+M -> RS : POST /v1/refunds {payment_intent: pi_…, amount: "5000000"}
+group транзакция БД №1
+  RS -> DB : PaymentIntent.reserve_refund(5 USDT)\n(не больше полученного)
+  RS -> DB : баланс продавца ≥ 5 USDT?
+  RS -> DB : INSERT refunds (pending)
+  RS -> DB : проводка −5 USDT, событие refund.created
+end
+RS -> A : send_refund(reference = re_…, to = кошелёк покупателя)
+A -> W : send_from_treasury(…, reference = re_…)
+note right of W : идемпотентно по reference:\nповтор не отправит деньги дважды
+W --> A : tx 0x…
+group транзакция БД №2
+  RS -> DB : refund.wallet_tx_id = 0x…
+end
+RS --> M : {object: "refund", status: "pending"}
+
+loop пока не подтверждено
+  Job -> RS : dispatch(re_…)
+  RS -> A : get_transaction(0x…)
+  alt подтверждений ≥ 3
+    RS -> DB : refund → succeeded, событие refund.succeeded
+  else перевод не прошёл
+    RS -> DB : refund → failed, release_refund(),\nпроводка +5 USDT (refund_failure)
+  end
+end
+@enduml

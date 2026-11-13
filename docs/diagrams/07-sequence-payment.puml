@@ -1,0 +1,55 @@
+@startuml sequence-payment
+!include _style.iuml
+title Последовательность 2 — подтверждение в кошельке и сверка платежа
+autonumber
+skinparam sequenceMessageAlign left
+
+actor "Покупатель" as C
+box "MockWallet (внешняя система)" #F5F7FA
+  participant "Страница\nкошелька" as WPage
+  participant "MockWallet" as W
+  participant "MockChain" as Chain
+end box
+box "CryptoPay" #F5F7FA
+  participant "Страница оплаты" as Page
+  participant "PaymentService" as PS
+  database "PostgreSQL" as DB
+  participant "PaymentSyncJob\n(раз в 3 с)" as Job
+end box
+
+C -> WPage : выбирает «Алиса», «Подтвердить»
+WPage -> W : approve(wpr_…, alice)
+W -> W : хватает денег? не заблокирован?\nсписать 25 USDT у Алисы
+W -> Chain : транзакция 0x… попадёт в блок N+1
+W --> WPage : approved, tx_id
+WPage -> Page : возврат на return_url
+
+loop пока покупатель на странице (каждые 2 с) или в фоне
+  Page -> PS : GET /api/checkout/cs_… → sync(pi_…)
+  PS -> W : get_payment_request / get_transaction
+  W -> Chain : confirmations = height − included + 1
+  W --> PS : status, confirmations, amount, currency
+  PS -> PS : _apply(): сумма и валюта совпадают?\nподтверждений ≥ 3?
+  alt запрос одобрен, подтверждений мало
+    PS -> DB : requires_action → processing,\nconfirmations = k
+  else подтверждений достаточно
+    group одна транзакция БД
+      PS -> DB : processing → succeeded, amount_received
+      PS -> DB : проводка: +25 USDT, комиссия 1 %
+      PS -> DB : CheckoutSession → complete
+      PS -> DB : events + webhook_deliveries (outbox)
+    end
+  else кошелёк отказал / транзакция провалилась
+    PS -> DB : → requires_payment_method,\nlast_payment_error = {code, message}
+  end
+  PS --> Page : текущий статус
+end
+Page -> C : печать «ОПЛАЧЕНО», переход на success_url
+
+note over Job
+  Если покупатель закрыл вкладку,
+  то же самое сделает фоновая задача:
+  sync() идемпотентен — повторный вызов
+  ничего не начислит дважды.
+end note
+@enduml

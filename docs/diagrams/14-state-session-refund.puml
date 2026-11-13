@@ -1,0 +1,33 @@
+@startuml state-session-refund
+!include _style.iuml
+title Состояния CheckoutSession, Refund и доставки вебхука
+
+state "CheckoutSession" as S {
+  [*] --> open : create()
+  open --> complete : платёж succeeded\n/ checkout.session.completed
+  open --> expired : истёк срок или expire()\n[платёж не в processing]\n/ checkout.session.expired
+  complete --> [*]
+  expired --> [*]
+}
+
+state "Refund" as R {
+  [*] --> pending : create()\n/ refund.created
+  pending --> pending : перевод отправлен,\nждём подтверждений
+  pending --> succeeded : подтверждений ≥ 3\n/ refund.succeeded
+  pending --> failed : кошелёк платформы отказал\nили перевод провалился\n/ refund.failed
+  succeeded --> [*]
+  failed --> [*]
+}
+
+state "WebhookDelivery" as D {
+  state "pending" as Dp
+  state "delivered" as Dd
+  state "failed" as Df
+  [*] --> Dp : событие попало в outbox
+  Dp --> Dd : ответ 2xx
+  Dp --> Dp : ошибка\n[попыток < 6]\nповтор через 1, 5, 15, 60, 360 мин
+  Dp --> Df : [попыток = 6]\nили адрес удалён
+  Dd --> [*]
+  Df --> [*]
+}
+@enduml

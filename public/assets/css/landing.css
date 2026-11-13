@@ -1,0 +1,182 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
+}
+.topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-left: auto;
+  font-size: var(--t-small);
+}
+.topbar nav a:not(.btn) {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.topbar nav a:not(.btn):hover {
+  color: var(--ink);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+.hero-title {
+  max-width: 16ch;
+  font-size: var(--t-display);
+  font-weight: 780;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+.hero-lead {
+  max-width: 34rem;
+  margin-top: 1.25rem;
+  color: var(--ink-soft);
+  font-size: var(--t-lead);
+  line-height: 1.6;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.hero-actions .btn {
+  min-height: 3rem;
+  padding: 0.6rem 1.4rem;
+}
+.hero-note {
+  margin-top: 0.85rem;
+}
+
+/* запрос и ответ — самое характерное для платёжного API */
+.exchange {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 1.25rem;
+  transform: rotate(0.6deg);
+}
+.exchange-caption {
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+  font-weight: 600;
+}
+.exchange-caption + pre + .exchange-caption {
+  margin-top: 0.5rem;
+}
+
+.section-heading {
+  font-size: var(--t-h2);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.flow {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 4rem;
+}
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.flow-steps li {
+  counter-increment: step;
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  padding-top: 1rem;
+  border-top: 2px solid var(--ink);
+}
+.flow-steps li::before {
+  content: counter(step);
+  color: var(--stamp);
+  font-size: var(--t-h2);
+  font-weight: 800;
+  line-height: 1;
+}
+.flow-steps span {
+  color: var(--ink-soft);
+  font-size: var(--t-small);
+}
+
+.testing {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 3rem;
+  align-items: start;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 4rem;
+}
+.testing .muted {
+  margin-top: 0.75rem;
+}
+.wallet-table td:first-child {
+  font-weight: 650;
+}
+
+.site-foot {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  border-top: 1px solid var(--desk-deep);
+}
+
+@media (max-width: 60rem) {
+  .hero,
+  .testing {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .hero {
+    padding-top: 1.5rem;
+  }
+  .hero-title {
+    font-size: var(--t-h1);
+  }
+  .exchange {
+    transform: none;
+  }
+  .flow-steps {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+@media (max-width: 36rem) {
+  .wallet-table th:last-child,
+  .wallet-table td:last-child {
+    display: none;
+  }
+  .topbar {
+    flex-wrap: wrap;
+    padding: 1rem;
+  }
+  .topbar nav {
+    gap: 0.9rem;
+    margin-left: 0;
+  }
+  .hero,
+  .flow,
+  .testing {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .flow-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

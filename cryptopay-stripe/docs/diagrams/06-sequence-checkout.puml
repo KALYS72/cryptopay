@@ -1,0 +1,50 @@
+@startuml sequence-checkout
+!include _style.iuml
+title Последовательность 1 — магазин создаёт страницу оплаты, покупатель уходит в кошелёк
+autonumber
+skinparam sequenceMessageAlign left
+
+actor "Покупатель" as C
+participant "Сервер магазина" as Shop
+box "CryptoPay" #F5F7FA
+  participant "API /v1\n(FastAPI)" as API
+  participant "IdempotencyService" as Idem
+  participant "CheckoutService" as CS
+  database "PostgreSQL" as DB
+  participant "Страница оплаты\n(checkout.js)" as Page
+end box
+participant "MockWalletAdapter" as Adapter
+participant "MockWallet" as W
+
+C -> Shop : «Купить худи»
+Shop -> API : POST /v1/checkout/sessions\nAuthorization: Bearer sk_test_…\nIdempotency-Key: order-1042\n{amount: "25000000", currency: "usdt", success_url}
+API -> API : проверка ключа (SHA-256 в базе),\nPydantic-валидация тела
+API -> Idem : execute(key, hash(тело))
+Idem -> DB : INSERT idempotency_keys … ON CONFLICT DO NOTHING
+Idem -> CS : create(merchant, data)
+CS -> CS : PaymentIntent.create()\nCheckoutSession.create()
+group транзакция БД (Unit of Work)
+  CS -> DB : INSERT payment_intents, checkout_sessions
+  CS -> DB : INSERT events (payment_intent.created)\nINSERT webhook_deliveries (outbox)
+end
+Idem -> DB : сохранить ответ под ключом
+API --> Shop : 200 {id: "cs_…", url: ".../checkout/cs_…", payment_intent: "pi_…"}
+Shop --> C : 303 → url
+
+C -> Page : открывает страницу оплаты
+Page -> API : GET /api/checkout/cs_…
+API --> Page : сумма, магазин, статус requires_payment_method
+C -> Page : «Оплатить 25,00 USDT»
+Page -> API : POST /api/checkout/cs_…/pay {customer_email}
+API -> CS : start_payment(cs_…, email)
+CS -> Adapter : create_payment_request(reference=pi_…, amount, return_url)
+Adapter -> W : create_payment_request(to = кошелёк платформы)
+W --> Adapter : wpr_… (pending)
+Adapter --> CS : WalletPaymentRequest(approve_url)
+group транзакция БД
+  CS -> DB : PaymentIntent → requires_action\n(UPDATE … WHERE version = N)
+  CS -> DB : event payment_intent.requires_action
+end
+API --> Page : {redirect_url: "/wallet/approve/wpr_…"}
+Page -> C : переход в кошелёк (как 3-D Secure у карт)
+@enduml

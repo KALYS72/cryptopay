@@ -1,0 +1,20 @@
+@startuml c4-context
+!include <C4/C4_Context>
+skinparam defaultFontName "DejaVu Sans"
+LAYOUT_WITH_LEGEND()
+title C4, уровень 1 — контекст системы CryptoPay
+
+Person(customer, "Покупатель", "Платит по ссылке криптокошельком")
+Person(merchant, "Продавец", "Смотрит платежи, делает возвраты, настраивает интеграцию")
+System(cryptopay, "CryptoPay", "Платёжная система в стиле Stripe: страницы оплаты, платежи, возвраты, баланс, вебхуки")
+System_Ext(shop, "Сайт магазина", "Создаёт страницы оплаты по секретному ключу, получает вебхуки")
+System_Ext(wallet, "Криптокошелёк MockWallet", "Имитация кошелька и сети: подтверждение платежей, транзакции, блоки")
+
+Rel(customer, shop, "Оформляет заказ")
+Rel(shop, cryptopay, "POST /v1/checkout/sessions", "REST + sk_test_…")
+Rel(customer, cryptopay, "Страница оплаты", "HTTPS")
+Rel(customer, wallet, "Подтверждает платёж")
+Rel(cryptopay, wallet, "Запросы на оплату, сверка транзакций, возвраты", "порт CryptoWallet")
+Rel(cryptopay, shop, "Вебхуки о событиях", "HTTPS + HMAC")
+Rel(merchant, cryptopay, "Кабинет", "HTTPS + JWT")
+@enduml

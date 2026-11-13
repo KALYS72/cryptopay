@@ -1,0 +1,56 @@
+@startuml use-case
+!include _style.iuml
+title Диаграмма вариантов использования — CryptoPay
+left to right direction
+
+actor "Покупатель" as Customer
+actor "Продавец\n(кабинет)" as Merchant
+actor "Сервер магазина\n(API-ключ sk_test_…)" as Shop
+actor "MockWallet\n(криптокошелёк)" as Wallet <<внешняя система>>
+actor "Планировщик\nфоновых задач" as Scheduler
+
+rectangle "CryptoPay" {
+  usecase "Зарегистрироваться,\nвойти в кабинет" as UC_Login
+  usecase "Выпустить секретный\nAPI-ключ" as UC_Key
+  usecase "Настроить адреса\nвебхуков" as UC_Hooks
+  usecase "Создать страницу оплаты\n(Checkout Session)" as UC_Session
+  usecase "Оплатить\nкриптокошельком" as UC_Pay
+  usecase "Подтвердить или отклонить\nплатёж в кошельке" as UC_Approve
+  usecase "Сверить платёж\nс кошельком" as UC_Sync
+  usecase "Дождаться\nподтверждений сети" as UC_Confirm
+  usecase "Вернуть деньги\n(Refund)" as UC_Refund
+  usecase "Отменить платёж,\nзакрыть страницу" as UC_Cancel
+  usecase "Получить вебхук\nо событии" as UC_Webhook
+  usecase "Смотреть платежи,\nбаланс, события" as UC_View
+  usecase "Закрыть страницы\nс истёкшим сроком" as UC_Expire
+}
+
+Merchant --> UC_Login
+Merchant --> UC_Key
+Merchant --> UC_Hooks
+Merchant --> UC_View
+Merchant --> UC_Session
+Merchant --> UC_Refund
+Merchant --> UC_Cancel
+Shop --> UC_Session
+Shop --> UC_Refund
+Shop --> UC_Cancel
+Customer --> UC_Pay
+Customer --> UC_Approve
+UC_Approve -- Wallet
+UC_Pay ..> UC_Approve : <<include>>
+UC_Pay ..> UC_Sync : <<include>>
+UC_Confirm .> UC_Sync : <<extend>>\n[подтверждений\nпока мало]
+UC_Sync -- Wallet
+UC_Refund -- Wallet
+Scheduler --> UC_Sync
+Scheduler --> UC_Expire
+Scheduler --> UC_Webhook
+UC_Webhook --> Shop
+
+note bottom of UC_Approve
+  Тестовые кошельки — как тестовые карты Stripe:
+  Алиса — успех, Боб — нет денег, Кэрол — отказ,
+  Дэйв — медленная сеть, Ева — транзакция проваливается.
+end note
+@enduml

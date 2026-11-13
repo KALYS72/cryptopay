@@ -1,0 +1,38 @@
+# Локальный запуск «как в продакшене»: приложение + PostgreSQL одной командой.
+#   cp .env.example .env    # и впишите JWT_SECRET
+#   docker compose up --build
+# Откройте http://localhost:3000
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cryptopay
+      POSTGRES_PASSWORD: cryptopay
+      POSTGRES_DB: cryptopay
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cryptopay -d cryptopay']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://cryptopay:cryptopay@db:5432/cryptopay
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me}
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

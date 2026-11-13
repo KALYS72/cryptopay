@@ -1,0 +1,71 @@
+@startuml object
+!include _style.iuml
+title Диаграмма объектов — снимок после оплаты и частичного возврата
+
+object "demo : Merchant" as m {
+  id = "acct_7Qm…"
+  business_name = "Демо-магазин «Пиксель»"
+  api_key_last4 = "7b25"
+}
+object "cs : CheckoutSession" as cs {
+  id = "cs_bUPn…"
+  status = "complete"
+  payment_status = "paid"
+}
+object "pi : PaymentIntent" as pi {
+  id = "pi_4dFi…"
+  amount = 25000000  «25 USDT»
+  status = "succeeded"
+  confirmations = 3
+  amount_received = 25000000
+  amount_refunded = 5000000
+  version = 4
+}
+object "re : Refund" as re {
+  id = "re_9Kx…"
+  amount = 5000000
+  status = "succeeded"
+}
+object "t1 : BalanceTransaction" as t1 {
+  type = "payment"
+  amount = 25000000
+  fee = 250000
+  net = 24750000
+}
+object "t2 : BalanceTransaction" as t2 {
+  type = "refund"
+  amount = -5000000
+  net = -5000000
+}
+object "e : EventRecord" as e {
+  type = "checkout.session.completed"
+  data = {object: cs}
+}
+object "d : WebhookDelivery" as d {
+  status = "delivered"
+  attempts = 1
+  last_status_code = 200
+}
+object "tx : Transaction (MockWallet)" as tx {
+  id = "0xedb5…"
+  from = Алиса
+  to = кошелёк платформы
+  included_height = 412
+}
+
+m -- cs
+cs -- pi
+pi -- re
+m -- t1
+m -- t2
+t1 ..> pi : source
+t2 ..> re : source
+e ..> cs : subject
+e -- d
+pi ..> tx : wallet_tx_id
+
+note bottom of t2
+  Баланс = Σ net = 24 750 000 − 5 000 000
+  = 19 750 000 (19,75 USDT)
+end note
+@enduml

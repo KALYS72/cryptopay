@@ -1,0 +1,30 @@
+@startuml sequence-webhook
+!include _style.iuml
+title Последовательность 3 — доставка вебхука (Transactional Outbox)
+autonumber
+
+participant "WebhookDeliveryJob" as Job
+database "PostgreSQL" as DB
+participant "HmacSha256\nWebhookSigner" as Signer
+participant "HttpxWebhookSender" as Sender
+participant "Сервер магазина\n(examples/shop.py)" as Shop
+
+Job -> DB : find_due(now): status = pending\nAND next_attempt_at <= now
+DB --> Job : доставки + события
+loop по каждой доставке
+  Job -> Job : тело = JSON объекта Event\n{id: evt_…, type, data: {object}}
+  Job -> Signer : sign(whsec_…, t, тело)
+  Signer --> Job : v1 = HMAC-SHA256("t.тело")
+  Job -> Sender : POST url\nCryptoPay-Signature: t=…,v1=…
+  Sender -> Shop : HTTPS, таймаут 10 с, без редиректов
+  Shop -> Shop : проверить подпись (compare_digest)\nи свежесть t (≤ 5 мин)\nevt_… уже обработан? → пропустить
+  alt 2xx
+    Shop --> Sender : 200 OK
+    Job -> DB : status = delivered
+  else ошибка или таймаут
+    Shop --> Sender : 500 / нет ответа
+    Job -> DB : attempts += 1,\nnext_attempt_at = now + 1 мин | 5 мин | 15 мин | 1 ч | 6 ч
+    note right : после 6 попыток — failed
+  end
+end
+@enduml

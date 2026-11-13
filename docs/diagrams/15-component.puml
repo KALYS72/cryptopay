@@ -1,0 +1,66 @@
+@startuml component
+!include _style.iuml
+title Диаграмма компонентов — порты и адаптеры (гексагональная архитектура)
+
+package "Браузер" {
+  [Кабинет продавца\n(dashboard.js)] as Dash
+  [Страница оплаты\n(checkout.js)] as Checkout
+  [Страница кошелька\n(wallet-approve.js)] as WalletUI
+}
+[Сервер магазина] as Shop
+
+package "CryptoPay (один процесс uvicorn)" {
+  package "HTTP-адаптер (FastAPI + Pydantic)" {
+    [REST API /v1] as V1
+    [API кабинета /api] as AppApi
+    [Middleware: CSP, лимиты, журнал] as MW
+  }
+  package "Прикладной слой" {
+    [Сервисы:\nCheckout, Payment, Refund,\nAccount, Balance, Webhook,\nIdempotency] as Services
+    [Фоновые задачи:\nсверка, возвраты, истечение,\nвебхуки, очистка ключей] as Jobs
+    [EventDispatcher +\nWebhookFanout] as Events
+  }
+  [Домен:\nPaymentIntent, CheckoutSession,\nRefund, BalanceTransaction] as Domain
+
+  () "CryptoWallet" as PWallet
+  () "UnitOfWork" as PUow
+  () "WebhookSender" as PSender
+  () "TokenService /\nPasswordHasher" as PSec
+
+  [MockWalletAdapter] as WAdapter
+  [PostgresUnitOfWork\n/ InMemoryUnitOfWork] as Store
+  [HttpxWebhookSender\n+ HMAC-подпись] as Sender
+  [JwtTokenService\n+ scrypt] as Security
+  [Scheduler (asyncio)] as Scheduler
+
+  package "MockWallet (внешняя система)" {
+    [MockWallet + MockChain] as Mock
+    [Роутер /wallet] as WalletRouter
+  }
+}
+database "PostgreSQL (Neon)" as PG
+
+Dash --> AppApi : HTTPS, JWT
+Dash --> V1 : HTTPS, JWT
+Checkout --> AppApi : HTTPS
+WalletUI --> WalletRouter : HTTPS
+Shop --> V1 : HTTPS, sk_test_…
+V1 --> Services
+AppApi --> Services
+Services --> Domain
+Services --> Events
+Services --> PWallet
+Services --> PUow
+Jobs --> Services
+Jobs --> PSender
+Scheduler --> Jobs
+Services --> PSec
+WAdapter -up- PWallet
+Store -up- PUow
+Sender -up- PSender
+Security -up- PSec
+WAdapter --> Mock
+WalletRouter --> Mock
+Store --> PG
+Sender --> Shop : вебхуки
+@enduml

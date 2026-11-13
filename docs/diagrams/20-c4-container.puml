@@ -1,0 +1,29 @@
+@startuml c4-container
+!include <C4/C4_Container>
+skinparam defaultFontName "DejaVu Sans"
+LAYOUT_WITH_LEGEND()
+title C4, уровень 2 — контейнеры CryptoPay
+
+Person(customer, "Покупатель")
+Person(merchant, "Продавец")
+System_Ext(shop, "Сайт магазина")
+
+System_Boundary(cp, "CryptoPay") {
+  Container(web, "Веб-интерфейс", "HTML + ES-модули без сборки", "Главная, кабинет, страница оплаты")
+  Container(api, "API-сервер", "Python 3.13, FastAPI, uvicorn", "REST /v1 как у Stripe, кабинет, страница оплаты, Swagger UI")
+  Container(worker, "Фоновые задачи", "asyncio в том же процессе", "Сверка платежей, возвраты, истечение страниц, вебхуки")
+  ContainerDb(db, "База данных", "PostgreSQL 16 (Neon)", "Платежи, события, журнал проводок, outbox")
+  Container(mock, "MockWallet", "Python, в памяти процесса", "Имитация кошелька и блокчейна, страница подтверждения, обозреватель")
+}
+
+Rel(customer, web, "Открывает", "HTTPS")
+Rel(merchant, web, "Открывает", "HTTPS")
+Rel(web, api, "JSON", "HTTPS")
+Rel(customer, mock, "Подтверждает платёж", "HTTPS /wallet")
+Rel(shop, api, "Создаёт сессии, возвраты", "REST + ключ")
+Rel(api, db, "Читает и пишет", "psycopg 3")
+Rel(worker, db, "Outbox, задачи", "psycopg 3")
+Rel(api, mock, "Порт CryptoWallet")
+Rel(worker, mock, "Сверка транзакций")
+Rel(worker, shop, "Вебхуки", "HTTPS + HMAC")
+@enduml

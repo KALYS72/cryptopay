@@ -1,0 +1,49 @@
+@startuml package
+!include _style.iuml
+title Диаграмма пакетов — правило зависимостей
+skinparam packageStyle rectangle
+
+package "cryptopay" {
+  package "domain" as D {
+    [payment_intent, checkout_session,\nrefund, ledger, merchant,\nwebhook_endpoint, money, events, errors]
+  }
+  package "application" as A {
+    package "ports" as Ports
+    package "services" as Services
+    package "events" as Ev
+    package "jobs" as Jobs
+  }
+  package "infrastructure" as I {
+    package "http" as Http
+    package "postgres" as Pg
+    package "memory" as Mem
+    package "wallet" as WalletAd
+    package "config, auth, webhooks,\nsystem, scheduler" as Misc
+  }
+  package "mockwallet" as M
+  package "container.py\n(корень композиции)" as C
+}
+
+A ..> D : import
+I ..> A : import
+I ..> D : import
+WalletAd ..> M : адаптер
+C ..> I
+C ..> A
+C ..> M
+
+note right of D
+  Только стандартная библиотека
+  (dataclasses, datetime, re, typing).
+end note
+note right of M
+  «Чужая» система: не импортирует
+  ничего из cryptopay — ни домен,
+  ни сервисы, ни инфраструктуру.
+end note
+note bottom of A
+  Зависимости направлены только внутрь.
+  Нарушение ломает tests/test_architecture.py
+  (разбор импортов модулем ast).
+end note
+@enduml
